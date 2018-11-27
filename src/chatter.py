@@ -7,16 +7,20 @@ import rospy
 from std_msgs.msg import String
 
 def talker():
+    rospy.init_node('talker', anonymous=True)
+    #testtest = rospy.set_param('~testo','uhskjadsha')
+    #print(testtest)
     topic_name = rospy.get_param('~topic_name')
     value = rospy.get_param('~value')
     rate_value = rospy.get_param('~rate')
     pub = rospy.Publisher(topic_name, String, queue_size=1)
-    rospy.init_node('talker', anonymous=True)
+
     rate = rospy.Rate(rate_value)
     while not rospy.is_shutdown():
         #hello_str = "hello world %s" % rospy.get_time()
         #rospy.loginfo(hello_str)
         pub.publish(value)
+        #print('hello')
         rate.sleep()
 
 if __name__ == '__main__':

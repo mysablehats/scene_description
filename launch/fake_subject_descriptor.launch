@@ -1,24 +1,26 @@
- <?xml version="1.0"?>
+<?xml version="1.0"?>
  <launch>
+   <group ns="subject">
    <!-- The separation between appearance and action parts is arbitrary, just so that I have a frame of reference -->
 
    <!-- APPEARANCE PART : more stable over time -->
    <!--  maybe I get some info about the person's appearance, maybe I get only their name. Also I could describe phenotipe (age, weight, ethnicity) as well as clothing. See https://en.wikipedia.org/wiki/Human_physical_appearance for inspiration -->
-   <node name="fake_subject_detect" pkg="scene_description" type="chatter" respawn="false" output="screen">
+   <node name="fake_subject_detect" pkg="scene_description" type="chatter.py" respawn="false" output="screen">
      <param name="topic_name" value="name"/>
      <param name="value" value="unknown"/>
      <param name="rate" value="1"/>
    </node>
 
    <!-- ACTION PART : faster changing rate over time -->
-   <node name="fake_subject_pose" pkg="scene_description" type="chatter" respawn="false" output="screen">
+   <node name="fake_subject_pose" pkg="scene_description" type="chatter.py" respawn="false" output="screen">
      <param name="topic_name" value="pose"/>
      <param name="value" value="unknown"/>
      <param name="rate" value="30"/>
    </node>
-   <node name="fake_subject_action" pkg="scene_description" type="chatter" respawn="false" output="screen">
+   <node name="fake_subject_action" pkg="scene_description" type="chatter.py" respawn="false" output="screen">
      <param name="topic_name" value="action"/>
      <param name="value" value="unknown"/>
      <param name="rate" value="1"/>
    </node>
+ </group>
  </launch>
