@@ -32,7 +32,7 @@
   </include>
 
   <node name="action_logger" pkg="scene_description" type="scene_logger_file.py" respawn="false" output="screen">
-    <param name="diff" value="True"/>
+    <param name="diff" value="False"/>
     <param name="logfile_path" value="~/human_act.log"/>
     <param name="rate" value="10"/>
   </node>

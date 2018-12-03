@@ -5,6 +5,7 @@
 # value and write results in a log file
 import rospy
 import os
+import time
 from std_msgs.msg import String
 
 class ActLogger():
@@ -27,13 +28,19 @@ class ActLogger():
             ### here we go through all of the topics, see if they changed - I am going to store the last bit of info of each to do the comparison
         #    rate.sleep()
     def callback(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s lastadata is %s", data.data ,self.lastdata)
+        rospy.logdebug(rospy.get_caller_id() + ": I heard %s lastadata is %s", data.data ,self.lastdata)
         if self.difflog and (data.data in self.lastdata):
-            rospy.loginfo("got same result. logging nothing.")
+            rospy.loginfo_throttle(20,"Got same result as last time. Logging nothing.")
 
             pass
         else:
-            self.logger.write(data.data+"\n")
+            now = rospy.get_rostime()
+            #timestr = "[%i %i] " % (now.secs, now.nsecs)
+            #timestr = time.strftime('%l:%M%p %Z on %b %d, %Y', time.gmtime(now.secs))
+            timestr = time.strftime('[%Y-%b-%d (%Z) %H:%M:%S]', time.gmtime(now.secs))
+            actloggerstring = timestr+ data.data+"\n"
+            self.logger.write(actloggerstring)
+            rospy.logdebug(actloggerstring)
 
         self.lastdata = data.data
 if __name__ == '__main__':
