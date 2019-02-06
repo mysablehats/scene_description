@@ -22,5 +22,7 @@
      <param name="outtopic" value="action"/>
      <param name="intopic" value="label"/>
    </node -->
- </group>
+   <include file="$(find scene_description)/launch/cfer.launch" />
+  </group>
+
  </launch>
