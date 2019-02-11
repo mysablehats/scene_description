@@ -60,7 +60,6 @@ class Cfer():
         self.y_topic = rospy.get_param('~y_topic','/subject/action')
         self.done_topic = rospy.get_param('~done_topic','')
         self.classes = eval(rospy.get_param('~classes','["something","something_else"]')) ### will get evaluated. this is a possible security issue!
-	self.cnf_matrix = None
         assert type(self.classes) == list
         rate_value = rospy.get_param('~rate',5)
         self.rate = rospy.Rate(rate_value)
@@ -120,9 +119,21 @@ class Cfer():
         print(y_pred)
         print("ytest:")
         print(y_test)
-        self.cnf_matrix = confusion_matrix(y_test, y_pred, labels=self.classes)
+        cnf_matrix = confusion_matrix(y_test, y_pred, labels=self.classes)
+        np.set_printoptions(precision=2)
 
-        return []
+        # Plot non-normalized confusion matrix
+        plt.figure()
+        plot_confusion_matrix(cnf_matrix, classes=self.classes,
+                              title='Confusion matrix, without normalization')
+
+        # Plot normalized confusion matrix
+        #plt.figure()
+        #plot_confusion_matrix(cnf_matrix, classes=self.classes, normalize=True,
+        #                      title='Normalized confusion matrix')
+
+        plt.show()
+        return True
 
 def initcf(req):
     global mycfer
@@ -149,22 +160,7 @@ if __name__ == '__main__':
             if mycfer:
                 mycfer.append_y_yhat()
                 mycfer.rate.sleep()
-            	if mycfer.cnf_matrix is not None:
-			np.set_printoptions(precision=2)
-
-			# Plot non-normalized confusion matrix
-			plt.figure()
-			plot_confusion_matrix(mycfer.cnf_matrix, classes=mycfer.classes,
-				              title='Confusion matrix, without normalization')
-
-			# Plot normalized confusion matrix
-			#plt.figure()
-			#plot_confusion_matrix(cnf_matrix, classes=self.classes, normalize=True,
-			#                      title='Normalized confusion matrix')
-
-			plt.show()
-			mycfer.cnf_matrix = None
-	    else:
+            else:
                 r.sleep()
         #mycfer.calccf()
 
