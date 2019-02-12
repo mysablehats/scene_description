@@ -32,7 +32,7 @@ def plot_confusion_matrix(cm, classes,
         print('Confusion matrix, without normalization')
 
     print(cm)
-    plt.ion()
+
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
@@ -57,7 +57,6 @@ class Cfer():
         self.y_hat_topic = rospy.get_param('~y_hat_topic','/subject/action')
         self.y_topic = rospy.get_param('~y_topic','/subject/action')
         self.done_topic = rospy.get_param('~done_topic','')
-        self.namespace = rospy.get_param('~namespace','')
         self.classes = eval(rospy.get_param('~classes','["something","something_else"]')) ### will get evaluated. this is a possible security issue!
         rospy.loginfo('Cfer initialized')
         self.cnf_matrix = None
@@ -68,7 +67,6 @@ class Cfer():
         self.ys = rospy.Subscriber(self.y_topic, String, self.callback_y_update)
         self.ds = rospy.Subscriber(self.done_topic, String, self.callback_done)
         self.ss = rospy.Service('show_cf', std_srvs.srv.Empty,self.calccf)
-        self.ssp = rospy.ServiceProxy('_show_cfer', std_srvs.srv.Empty)
         self.ylist = []
         self.yhatlist = []
         self.curry = None
@@ -80,7 +78,6 @@ class Cfer():
         self.ys.unregister()
         self.ds.unregister()
         self.ss.shutdown('cfer object deleted by service call')
-        self.ssp.close()
         rospy.loginfo('Cfer finished deleting itself!')
         #   rospy.spin()
     def callback_done(self, data):
@@ -125,8 +122,7 @@ class Cfer():
         print("ytest:")
         print(y_test)
         self.cnf_matrix = confusion_matrix(y_test, y_pred, labels=self.classes)
-        self.ssp()
-        rospy.loginfo('done calculating and showing confusion matrix!')
+
         return []
 
 class Cfer_wrap():
@@ -134,15 +130,7 @@ class Cfer_wrap():
         rospy.init_node('cfer', anonymous=True)
         self.initsrv = rospy.Service('init_cfer', std_srvs.srv.Empty,self.initcf)
         self.delsrv = rospy.Service('del_cfer', std_srvs.srv.Empty,self.clearcf)
-        self.showsrv = rospy.Service('_show_cfer', std_srvs.srv.Empty,self.showcf)
-        self.blocksrv = rospy.Service('block', std_srvs.srv.Empty,self.block)
         self.mycfer = None
-
-    def block(self,req):
-        ###blocking call from matplotlib.
-        ###this does not work. matplotlib can't thread...
-        plt.show()
-        return []
     def initcf(self,req):
         if self.mycfer:
             rospy.logwarn(dir(self.mycfer))
@@ -161,39 +149,33 @@ class Cfer_wrap():
         rospy.loginfo('Cfer deleted and set to None')
         return []
 
-    def showcf(self,req):
-            if self.mycfer:
-                assert self.mycfer is not None
-                if self.mycfer.cnf_matrix is not None:
+if __name__ == '__main__':
+    try:
+        cferwrap = Cfer_wrap()
+        # r= rospy.Rate(20)
+
+        while not rospy.is_shutdown():
+            if cferwrap.mycfer:
+                assert cferwrap.mycfer is not None
+                if cferwrap.mycfer.cnf_matrix is not None:
                     rospy.loginfo('Cfn_matrix ready and prepared to be displayed')
                     np.set_printoptions(precision=2)
                     # Plot non-normalized confusion matrix
-                    plt.figure("Fig: "+self.mycfer.namespace)
-
-                    plot_confusion_matrix(self.mycfer.cnf_matrix, classes=self.mycfer.classes, title='Confusion matrix, without normalization')
+                    plt.figure()
+                    plot_confusion_matrix(cferwrap.mycfer.cnf_matrix, classes=cferwrap.mycfer.classes, title='Confusion matrix, without normalization')
                     # Plot normalized confusion matrix
                     #plt.figure()
                     #plot_confusion_matrix(cnf_matrix, classes=self.classes, normalize=True,
                     #                      title='Normalized confusion matrix')
-
-                    #plt.show(block = False)
                     plt.show()
-                    plt.pause(0.001)
-                    self.mycfer.cnf_matrix = None
+                    cferwrap.mycfer.cnf_matrix = None
                     rospy.loginfo('Cfn_matrix ready and prepared to be displayed')
-                    return []
-
-if __name__ == '__main__':
-    try:
-        cferwrap = Cfer_wrap()
-        r= rospy.Rate(10)
-
-        while not rospy.is_shutdown():
-            if not cferwrap.mycfer:
-                r.sleep()
-            else:
+                # else:
+                #     r.sleep()
+                #     #mycfer.calccf()
                 cferwrap.mycfer.append_y_yhat()
                 cferwrap.mycfer.rate.sleep()
+                #rospy.spin()
 
     except rospy.ROSInterruptException:
         pass
