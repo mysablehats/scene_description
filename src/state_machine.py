@@ -70,6 +70,7 @@ class statemachine():
                     ## maybe get a handle for the popen and do a popen.kill()/popen.terminate() ?
 
             ###after everything finishes, block them plots!
+            rospy.signal_shutdown('I''m done, so bye! ')
             for i in range(1,5):
                 block_cfer_h = rospy.ServiceProxy('/split_{}/block'.format(i), Empty)
                 #block_cfer_h() ##main thread is not in main loop error...

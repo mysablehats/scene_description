@@ -58,6 +58,7 @@ class Cfer():
         self.y_topic = rospy.get_param('~y_topic','/subject/action')
         self.done_topic = rospy.get_param('~done_topic','')
         self.namespace = rospy.get_param('~namespace','')
+        self.synch_appending = rospy.get_param('~synch_appending',False)
         self.classes = eval(rospy.get_param('~classes','["something","something_else"]')) ### will get evaluated. this is a possible security issue!
         rospy.loginfo('Cfer initialized')
         self.cnf_matrix = None
@@ -95,6 +96,8 @@ class Cfer():
     def callback_yhat_update(self, data):
         rospy.logdebug(rospy.get_caller_id() + ": I heard %s from y_hat_topic", data.data )
         self.curry_hat = data.data
+        if self.synch_appending:
+            self.append_y_yhat()
     def append_y_yhat(self):
         ## makes sure that they are the same length, even if they are published at different time intervals
         rospy.logdebug(rospy.get_caller_id() + ": I am pushing into lists: %s ; %s", self.curry,self.curry_hat )
@@ -192,7 +195,8 @@ if __name__ == '__main__':
             if not cferwrap.mycfer:
                 r.sleep()
             else:
-                cferwrap.mycfer.append_y_yhat()
+                if not cferwrap.mycfer.synch_appending:
+                    cferwrap.mycfer.append_y_yhat()
                 cferwrap.mycfer.rate.sleep()
 
     except rospy.ROSInterruptException:
